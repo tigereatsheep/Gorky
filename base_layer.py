@@ -7,7 +7,7 @@ class BaseLayer(object):
         self.trainable = trainable
         if self.trainable:
             self.weights = None
-            self.gradients = []
+            self.gradients = None
 
     def forward(self):
         raise NotImplementedError

@@ -1,4 +1,5 @@
 # coding: utf-8
+import numpy as np
 from base_layer import BaseLayer
 from operators import (naive_convolutional, naive_convolutional_deriviation,
                         conv_initializer, naive_initializer)
@@ -24,7 +25,7 @@ class Convolution(BaseLayer):
                                              self.reshaped_input, self.reshaped_output,
                                              self.pad, self.stride)
         if self.trainable:
-            self.gradients.append(kernel_gradient)
+            self.gradients = kernel_gradient
         return input_gradient
 
 
@@ -36,13 +37,21 @@ class FullyConnect(BaseLayer):
 
     def forward(self, input):
         self.input = input
-        return input.dot(self.weights)
+        batch_size = input.shape[0]
+        output = np.zeros((batch_size, 1, self.weights.shape[1]))
+        for b in range(batch_size):
+            output[b] = input[b].dot(self.weights)
+        return output
 
     def backward(self, gradient):
-        self.gradients.append(self.input.T.dot(
-            gradient
-        ))
-        return gradient.dot(self.weights.T)
+        batch_size = gradient.shape[0]
+        in_dim, out_dim = self.weights.shape
+        self.gradients = np.zeros((batch_size, in_dim, out_dim))
+        input_gradient = np.zeros((batch_size, 1, in_dim))
+        for b in range(batch_size):
+            self.gradients[b] = self.input[b].T.dot(gradient[b])
+            input_gradient[b] = gradient[b].dot(self.weights[b].T)
+        return input_gradient
 
 
 class Flatten(BaseLayer):
@@ -53,7 +62,7 @@ class Flatten(BaseLayer):
     
     def forward(self, input):
         self.src_shape = input.shape
-        input = input.reshape((1, -1))
+        input = input.reshape((input.shape[0], 1, -1))
         return input
     
     def backward(self, gradient):

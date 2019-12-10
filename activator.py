@@ -3,6 +3,10 @@ import numpy as np
 from base_layer import BaseLayer
 
 
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+
 class ReLU(BaseLayer):
 
     def __init__(self):
@@ -20,17 +24,13 @@ class ReLU(BaseLayer):
 
 class Sigmoid(BaseLayer):
 
-    @staticmethod
-    def sigmoid(input):
-        return 1 / (1 + np.exp(-input))
-
     def __init__(self):
         super(Sigmoid, self).__init__(trainable=False)
     
     def forward(self, input):
         self.input = input
-        return self.sigmoid(input)
+        return sigmoid(input)
 
     def backward(self, gradient):
-        return self.sigmoid(self.input) * \
-            (1 - self.sigmoid(input)) * gradient
+        return sigmoid(self.input) * \
+            (1 - sigmoid(self.input)) * gradient
